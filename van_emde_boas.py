@@ -1,54 +1,81 @@
 import math
 
 class Tree:
-    cluster =[]
-    u = 0
-    summary = []
-    def __init__(self, cluster):
-        if cluster == None:
-            self.u = 0
+    def __init__(self, universe):
+        self.u = universe
+        print("u = ", self.u)
+        if(self.u == 2):
+            self.cluster = [0,0]
             self.summary = None
-            self.cluster = None
-            return
-        self.u = len(cluster)
-        if len(cluster) == 2:
-            self.cluster = cluster
+            print("cluster = ", 0, 0)
+        else: 
+            block = int(math.sqrt(self.u)) 
+            self.cluster = [None] * block
             
-            ### debugging
-            print("cluster:")
-            for i in self.cluster:
-                print(i)
-            ####
+            for i in range(0, block):
+                self.cluster[i] = Tree(block)
+            print("summary: ")
+            self.summary = Tree(block)
             
-        else:
-            block_size = int(math.sqrt(self.u)) 
-            block_num = int(self.u / block_size)
-            self.cluster = [None] * block_num
+    def insert(self, x):
+        if(self.u == 2):
+            print("inserting")
+            self.cluster[x] = 1
+        else: 
+            high = self.high(x)
+            low = self.low(x)
+            print("high: ", high)
+            print("low: ", low)
+            self.cluster[high].insert(low)
+            if self.summary is not None: self.summary.insert(high)
+    
+    def membership(self, x):
+        if self.u == 2: 
+            return self.cluster[x] == 1
+        else: 
+            high = self.high(x)
+            low = self.low(x)
+            if self.summary.membership(high) is False: 
+                return False
+            else: 
+                return self.cluster[high].membership(low)
+    
+    def successor(self, x):
+        if self.u == 2: 
+            return self.cluster[x] == 1
+        else: 
+            high = self.high(x)
+            low = self.low(x)
+            if self.summary.membership(high) is False: 
+                return False
+            else: 
+                return self.cluster[high].membership(low)
             
-            print("Size: " , self.u, "Cluster: ")
-            j = 0
-            k = 0
-            for i in range(0, block_num, 1):
-                self.cluster[i] = Tree(cluster[j: j + block_size])
-                if ((i+1) % 2 == 0 and block_num > 2):
-                    self.summary.cluster[i] = Tree()
-                    
-                j += block_size
-
-            # if(block_num == 2):
-            #     self.summary = self.summary_builder()
-            #     print("Summary: ", self.summary.cluster[0], self.summary.cluster[1])
-            # elif(block_num == 4):
-            #     self.summary = Tree(None)
-            #     cluster_1 = Tree([self.cluster[0].summary.cluster[0] or self.cluster[0].summary.cluster[1], self.cluster[1].summary.cluster[0] or self.cluster[1].summary.cluster[0]])     
-            #     cluster_2 = Tree([self.cluster[2].summary.cluster[0] or self.cluster[2].summary.cluster[1], self.cluster[3].summary.cluster[0] or self.cluster[3].summary.cluster[0]])   
-            #     self.summary.cluster = [cluster_1, cluster_2]     
-            #     self.summary.summary = Tree([int(self.summary.cluster[0].cluster[0] or self.summary.cluster[0].cluster[1]), int(self.summary.cluster[1].cluster[0] or self.summary.cluster[1].cluster[1])])
+    def high(self, x):
+        block = int(math.sqrt(self.u))
+        return int(math.floor(x/block))
+    
+    def low(self, x):
+        block = int(math.sqrt(self.u))
+        return (x % block)
+    
+    def show(self):
+        print("u = ", self.u)
+        if(self.u == 2):
+            print("cluster = ", self.cluster[0], self.cluster[1])
+        else: 
+            block = int(math.sqrt(self.u)) 
+            
+            for i in range(0, block):
+                self.cluster[i].show()
                 
-    def summary_builder(self):
-        return Tree([int(self.cluster[0].cluster[0] or self.cluster[0].cluster[1]), int(self.cluster[1].cluster[0] or self.cluster[1].cluster[1])])
-
-Tree([0,0,1,1,1,1,0,1,0,0,0,0,0,0,1,1])
-
-
-
+            print("summary: ")
+            self.summary.show()
+            
+t = Tree(16)
+print("----")
+t.show()
+t.insert(2)
+print("----")
+t.show()
+print("MEMBERSHIP:", t.membership(2))
