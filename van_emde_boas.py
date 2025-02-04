@@ -1,9 +1,12 @@
 import math
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class Tree:
     # create an empty van Emde Boas tree given the universe size
     def __init__(self, universe):
         self.u = universe
+        self.stack = [self]
         
         # the smallest cluster size is 2
         # TODO: modify so that the size of each partition is dynamic
@@ -101,12 +104,49 @@ class Tree:
                 
             print("summary: ")
             self.summary.show()
+    def show_fancy(self):
+        # Create a graph
+        G = nx.Graph()
+        G.add_nodes_from(self)
+        prev_n = None
+        for n in list(G.nodes):
+            if prev_n is not None and prev_n.u > n.u:
+                G.add_edge(n,prev_n)
+            prev_n = n
+
+        # Draw the graph
+        nx.draw(G, with_labels=True)
+        plt.show()
+        
+    def __str__(self) -> str:
+        return_string = "u: {}".format(self.u)
+        if self.u == 2:
+            for c in self.cluster:
+                return_string += "\n" + str(c)
+        return return_string
+    
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if not self.stack: 
+            raise StopIteration
+        else: 
+            curr = self.stack.pop()
+            print(curr)
+            if curr.cluster is list: 
+                self.stack.append(curr.cluster)
+            elif curr.u >= 4 and curr.cluster is not None:
+                for c in curr.cluster[::-1]:
+                    self.stack.append(c)
+            return curr
+    def __len__(self):
+        return 1 + len(self.cluster)
+
+                
             
 # some test code       
 t = Tree(16)
-print("----")
-t.show()
 t.insert(2)
-print("----")
-t.show()
+t.show_fancy()
+t.edge_generator()
 print("MEMBERSHIP:", t.membership(2))
