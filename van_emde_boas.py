@@ -7,7 +7,8 @@ class Tree:
     def __init__(self, universe):
         self.u = universe
         self.stack = [self]
-        
+        self.min = -1
+        self.max = -1
         # the smallest cluster size is 2
         # TODO: modify so that the size of each partition is dynamic
         if(self.u == 2):
@@ -46,6 +47,12 @@ class Tree:
             
             # recursively insert in summary, too
             if self.summary is not None: self.summary.insert(high)
+
+        if x < self.min or self.min == -1:
+            self.min = x
+        if x > self.max: 
+            self.max = x
+            
     
     # given an element x, check if it is the tree
     def membership(self, x):
@@ -71,17 +78,29 @@ class Tree:
     # TODO: under construction
     def successor(self, x):
         if self.u == 2: 
-            return self.cluster[x] == 1
+            if x == 0 and self.cluster[1] == 1: 
+                return 1
+            else: 
+                return math.inf
         else: 
             high = self.high(x)
             low = self.low(x)
-            if self.summary.membership(high) is False: 
-                return False
+            j = self.cluster[high].successor(low)
+            if j != math.inf: 
+                return high*(math.sqrt(self.u)) + j
             else: 
-                return self.cluster[high].membership(low)
+                i = self.summary.successor(high)
+                if i != math.inf: 
+                    i = int(i)
+                    j = self.cluster[i].successor(-math.inf)
+                    return i*(math.sqrt(self.u)) + j
+                else: 
+                    return math.inf
     
     # the index of the cluster in which x would be located
     def high(self, x):
+        if(x == math.inf or x == -math.inf):
+            return math.inf
         block = int(math.sqrt(self.u))
         return int(math.floor(x/block))
     
@@ -92,7 +111,7 @@ class Tree:
     
     # rudimentary display of tree
     # TODO: make prettier
-    def show(self):
+    def print(self):
         print("u = ", self.u)
         if(self.u == 2):
             print("cluster = ", self.cluster[0], self.cluster[1])
@@ -104,16 +123,17 @@ class Tree:
                 
             print("summary: ")
             self.summary.show()
-    def show_fancy(self):
+    def show(self):
         # Create a graph
         G = nx.Graph()
         G.add_nodes_from(self)
-        prev_n = None
-        for n in list(G.nodes):
-            if prev_n is not None and prev_n.u > n.u:
-                G.add_edge(n,prev_n)
-            prev_n = n
 
+        prev = None
+        for curr in G.nodes: 
+            if prev is not None:
+                G.add_edge(curr, prev)
+            prev = curr
+            
         # Draw the graph
         nx.draw(G, with_labels=True)
         plt.show()
@@ -132,7 +152,7 @@ class Tree:
             raise StopIteration
         else: 
             curr = self.stack.pop()
-            print(curr)
+            print(curr.min)
             if curr.cluster is list: 
                 self.stack.append(curr.cluster)
             elif curr.u >= 4 and curr.cluster is not None:
@@ -146,7 +166,10 @@ class Tree:
             
 # some test code       
 t = Tree(16)
-t.insert(2)
+t.insert(15)
+t.insert(13)
+
 t.show_fancy()
-t.edge_generator()
+# t.edge_generator()
 print("MEMBERSHIP:", t.membership(2))
+print(t.min)
