@@ -37,16 +37,14 @@ class Tree:
         # insert directly in base case
         if(self.u == 2):
             self.cluster[x] = 1
-            
         else: 
             high = self.high(x)
             low = self.low(x)
-            
             # recurse to insert
             self.cluster[high].insert(low)
-            
             # recursively insert in summary, too
-            if self.summary is not None: self.summary.insert(high)
+            if self.summary is not None: 
+                self.summary.insert(high)
 
         if x < self.min or self.min == -1:
             self.min = x
@@ -57,26 +55,26 @@ class Tree:
     # given an element x, check if it is the tree
     def membership(self, x):
         # handle erroneous input
-        if x >= self.u or x < 0: 
-            print("Element not in universe.")
-            return 
-        
+        if self.min == -1 or x > self.max or x < self.min: 
+            return False
         # check drectly in base case
         if self.u == 2: 
             return self.cluster[x] == 1
-        
         else: 
             high = self.high(x)
             low = self.low(x)
-            
             # check if summary is 0 before bothering to check cluster
             if self.summary.membership(high) is False: 
                 return False
             else: 
                 return self.cluster[high].membership(low)
     
-    # TODO: under construction
     def successor(self, x):
+        if x < self.min: 
+            return self.min
+        elif x >= self.max: 
+            return math.inf
+        
         if self.u == 2: 
             if x == 0 and self.cluster[1] == 1: 
                 return 1
@@ -85,17 +83,13 @@ class Tree:
         else: 
             high = self.high(x)
             low = self.low(x)
-            j = self.cluster[high].successor(low)
-            if j != math.inf: 
+            if low < self.cluster[high].max:
+                j = self.cluster[high].successor(low)
                 return high*(math.sqrt(self.u)) + j
             else: 
                 i = self.summary.successor(high)
-                if i != math.inf: 
-                    i = int(i)
-                    j = self.cluster[i].successor(-math.inf)
-                    return i*(math.sqrt(self.u)) + j
-                else: 
-                    return math.inf
+                return i*(math.sqrt(self.u)) + self.cluster[i].min
+
     
     # the index of the cluster in which x would be located
     def high(self, x):
@@ -108,6 +102,7 @@ class Tree:
     def low(self, x):
         block = int(math.sqrt(self.u))
         return (x % block)
+    
     
     # rudimentary display of tree
     def print(self):
@@ -122,16 +117,15 @@ class Tree:
                 
             print("summary: ")
             self.summary.show()
-    # TODO: complete
+
+
+    #TODO: display summary
     def show(self):
-        # Create a graph
         G = nx.DiGraph()
         G.add_nodes_from(self)
                 
         special_stack = []
-        
         for curr in G.nodes: 
-            print(special_stack)
             s_len = len(special_stack)
             if s_len != 0:
                 parent = special_stack[s_len-1]
@@ -144,9 +138,7 @@ class Tree:
                 special_stack.append([curr, math.sqrt(curr.u)])
             
         pos = nx.bfs_layout(G, self)
-
-        # Draw the graph
-        nx.draw(G, pos, arrows=True, with_labels=True, node_size=2000, node_color='#fff2fc', font_size=8,
+        nx.draw(G, pos, arrows=True, with_labels=True, node_size=3000, node_color='#fff2fc', font_size=8,
             font_weight='bold')
         plt.show()
         
@@ -155,8 +147,9 @@ class Tree:
         if self.u == 2:
             for c in self.cluster:
                 return_string += "\n" + str(c)
+        return_string += "\nmin = {}\n".format(self.min)
+        return_string += "max = {}\n".format(self.max)
         return return_string
-    
     def __iter__(self):
         return self
     def __next__(self):
@@ -164,7 +157,6 @@ class Tree:
             raise StopIteration
         else: 
             curr = self.stack.pop()
-            print(curr.min)
             if curr.cluster is list: 
                 self.stack.append(curr.cluster)
             elif curr.u >= 4 and curr.cluster is not None:
@@ -179,9 +171,14 @@ class Tree:
 # some test code       
 t = Tree(16)
 t.insert(15)
+t.insert(12)
+
 t.insert(13)
 
-t.show()
 # t.edge_generator()
-# print("MEMBERSHIP:", t.membership(2))
+print("successor: ", t.successor(10))
+print("MEMBERSHIP:", t.membership(2))
+print("MEMBERSHIP:", t.membership(13))
+t.show()
+
 # print(t.min)
