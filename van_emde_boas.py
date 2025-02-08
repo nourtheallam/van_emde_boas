@@ -110,7 +110,6 @@ class Tree:
         return (x % block)
     
     # rudimentary display of tree
-    # TODO: make prettier
     def print(self):
         print("u = ", self.u)
         if(self.u == 2):
@@ -123,19 +122,32 @@ class Tree:
                 
             print("summary: ")
             self.summary.show()
+    # TODO: complete
     def show(self):
         # Create a graph
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_nodes_from(self)
-
-        prev = None
+                
+        special_stack = []
+        
         for curr in G.nodes: 
-            if prev is not None:
-                G.add_edge(curr, prev)
-            prev = curr
+            print(special_stack)
+            s_len = len(special_stack)
+            if s_len != 0:
+                parent = special_stack[s_len-1]
+                if parent[1] != 0:
+                    G.add_edge(parent[0], curr)
+                    parent[1] -= 1
+                if parent[1] == 0:
+                    special_stack.pop(s_len-1)
+            if curr.u != 2: 
+                special_stack.append([curr, math.sqrt(curr.u)])
             
+        pos = nx.bfs_layout(G, self)
+
         # Draw the graph
-        nx.draw(G, with_labels=True)
+        nx.draw(G, pos, arrows=True, with_labels=True, node_size=2000, node_color='#fff2fc', font_size=8,
+            font_weight='bold')
         plt.show()
         
     def __str__(self) -> str:
@@ -169,7 +181,7 @@ t = Tree(16)
 t.insert(15)
 t.insert(13)
 
-t.show_fancy()
+t.show()
 # t.edge_generator()
-print("MEMBERSHIP:", t.membership(2))
-print(t.min)
+# print("MEMBERSHIP:", t.membership(2))
+# print(t.min)
