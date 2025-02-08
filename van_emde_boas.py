@@ -89,7 +89,28 @@ class Tree:
             else: 
                 i = self.summary.successor(high)
                 return i*(math.sqrt(self.u)) + self.cluster[i].min
-
+    
+    def predecessor(self, x):
+        if x > self.max: 
+            return self.max
+        elif x <= self.min:
+            return math.inf 
+        
+        if self.u == 2:
+            if x == 1 and self.cluster[0] == 1:
+                return 0
+            else: 
+                return math.inf
+        else:
+            high = self.high(x)
+            low = self.low(x) 
+            if x > self.cluster[high].min:
+                j = self.cluster[high].predecessor(low)
+                return high*math.sqrt(self.u) + j
+            else: 
+                i = self.summary.predecessor(high)
+                return i*math.sqrt(self.u) + self.cluster[i].max
+            
     
     # the index of the cluster in which x would be located
     def high(self, x):
@@ -177,6 +198,8 @@ t.insert(13)
 
 # t.edge_generator()
 print("successor: ", t.successor(10))
+print("predecessor: ", t.predecessor(10))
+print("predecessor: ", t.predecessor(13))
 print("MEMBERSHIP:", t.membership(2))
 print("MEMBERSHIP:", t.membership(13))
 t.show()
