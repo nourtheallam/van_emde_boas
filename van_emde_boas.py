@@ -110,7 +110,10 @@ class Tree:
             else: 
                 i = self.summary.predecessor(high)
                 return i*math.sqrt(self.u) + self.cluster[i].max
-            
+    
+    #TODO: write
+    # def delete(self,x): 
+        
     
     # the index of the cluster in which x would be located
     def high(self, x):
